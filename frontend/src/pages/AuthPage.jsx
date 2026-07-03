@@ -43,7 +43,20 @@ export const AuthPage = () => {
   const submit = async (event) => {
     event.preventDefault(); setBusy(true); setMessage('');
     try {
-      if (mode === 'register') {
+      if (mode === 'forgot') {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, email, newPassword: password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        setMessage(data.message);
+        setMode('login');
+        setPhone('');
+        setEmail('');
+        setPassword('');
+      } else if (mode === 'register') {
         if (!resident) throw new Error('Verify the Aadhaar-linked mobile number first.');
         await register(phone, email, password);
       } else await login(email, password);
@@ -112,33 +125,37 @@ export const AuthPage = () => {
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <Droplets color="#2d6a4f" size={44} />
             <h2 style={{ fontSize: 26, margin: '10px 0 4px', color: '#102613', letterSpacing: '-0.4px', fontWeight: 700 }}>
-              {mode === 'register' ? 'Create Account' : 'Sign In'}
+              {mode === 'register' ? 'Create Account' : mode === 'forgot' ? 'Reset Password' : 'Sign In'}
             </h2>
             <p style={{ color: '#556b56', fontSize: 14 }}>
               {mode === 'register'
                 ? 'Register using your Aadhaar-linked mobile number.'
+                : mode === 'forgot'
+                ? 'Verify your email and Aadhaar-linked mobile number.'
                 : 'Water quality monitoring and issue logging portal.'}
             </p>
           </div>
 
           <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
-            {mode === 'register' && <>
+            {(mode === 'register' || mode === 'forgot') && <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={label}>Aadhaar-linked mobile number</label>
                 <input style={inp} value={phone} maxLength="10" placeholder="10-digit mobile number"
-                  onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} />
+                  onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} required />
               </div>
-              <button type="button" onClick={verify} disabled={busy || phone.length !== 10}
-                style={{ ...btn, background: '#4a7c59' }}>
-                {busy ? 'Checking...' : 'Verify Mobile Number'}
-              </button>
-              {resident && <div style={{
-                background: '#e8efe9', border: '1px solid #ccd8cd',
-                padding: '12px 14px', borderRadius: 8, color: '#2c3e2e', fontSize: 14,
-              }}>
-                <ShieldCheck size={16} style={{ color: '#2d6a4f', marginRight: 6, verticalAlign: 'middle' }} />
-                <strong>Verified:</strong> {resident.name} · {resident.ward}
-              </div>}
+              {mode === 'register' && <>
+                <button type="button" onClick={verify} disabled={busy || phone.length !== 10}
+                  style={{ ...btn, background: '#4a7c59' }}>
+                  {busy ? 'Checking...' : 'Verify Mobile Number'}
+                </button>
+                {resident && <div style={{
+                  background: '#e8efe9', border: '1px solid #ccd8cd',
+                  padding: '12px 14px', borderRadius: 8, color: '#2c3e2e', fontSize: 14,
+                }}>
+                  <ShieldCheck size={16} style={{ color: '#2d6a4f', marginRight: 6, verticalAlign: 'middle' }} />
+                  <strong>Verified:</strong> {resident.name} · {resident.ward}
+                </div>}
+              </>}
             </>}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -146,7 +163,7 @@ export const AuthPage = () => {
               <input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={label}>Password</label>
+              <label style={label}>{mode === 'forgot' ? 'New password' : 'Password'}</label>
               <input style={inp} type="password" value={password} minLength="6"
                 onChange={(e) => setPassword(e.target.value)} required />
             </div>
@@ -154,16 +171,22 @@ export const AuthPage = () => {
             {message && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: 8, fontSize: 14 }}>{message}</div>}
 
             <button type="submit" disabled={busy} style={{ ...btn, marginTop: 4 }}>
-              {mode === 'register' ? <><UserPlus size={16} /> Complete Registration</> : <><LogIn size={16} /> Sign In</>}
+              {mode === 'register' ? <><UserPlus size={16} /> Complete Registration</> : mode === 'forgot' ? 'Reset Password' : <><LogIn size={16} /> Sign In</>}
             </button>
           </form>
 
           <p style={{ marginTop: 20, textAlign: 'center', fontSize: 14, color: '#556b56' }}>
-            {mode === 'register' ? 'Already registered?' : 'New resident?'}&nbsp;
-            <button onClick={() => { setMode(mode === 'register' ? 'login' : 'register'); setMessage(''); setResident(null); }}
+            {mode === 'register' ? 'Already registered?' : mode === 'forgot' ? 'Remembered password?' : 'New resident?'}&nbsp;
+            <button onClick={() => { setMode(mode === 'register' ? 'login' : mode === 'forgot' ? 'login' : 'register'); setMessage(''); setResident(null); }}
               style={{ background: 'none', border: 'none', color: '#2d6a4f', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: 14 }}>
-              {mode === 'register' ? 'Sign In' : 'Register'}
+              {mode === 'register' || mode === 'forgot' ? 'Sign In' : 'Register'}
             </button>
+            {mode === 'login' && <>&nbsp;·&nbsp;
+              <button onClick={() => { setMode('forgot'); setMessage(''); setResident(null); }}
+                style={{ background: 'none', border: 'none', color: '#2d6a4f', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: 14 }}>
+                Forgot Password?
+              </button>
+            </>}
           </p>
 
           {mode === 'login' && <div style={{

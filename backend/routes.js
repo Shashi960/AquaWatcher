@@ -78,6 +78,32 @@ router.post('/auth/login', async (req, res) => {
   res.json({ token: createToken(user), user: publicUser(user) });
 });
 
+router.post('/auth/reset-password', async (req, res) => {
+  const { phone, email, newPassword } = req.body;
+  const normalizedPhone = String(phone || '').replace(/\D/g, '');
+  if (!normalizedPhone || !email || !newPassword) {
+    return res.status(400).json({ message: 'Phone number, email, and new password are required.' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'Password must contain at least 6 characters.' });
+  }
+
+  const users = getCollection('users');
+  const user = await users.findOne({ 
+    phone: normalizedPhone, 
+    email: String(email).toLowerCase() 
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: 'No registered account found with that email and Aadhaar-linked phone number.' });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await users.updateOne({ _id: user._id }, { $set: { password: hashedPassword } });
+
+  res.json({ message: 'Password reset successful. Please sign in with your new password.' });
+});
+
 router.get('/auth/me', authenticateToken, async (req, res) => {
   const user = await getCollection('users').findOne({ _id: req.user.id });
   if (!user) return res.status(404).json({ message: 'User not found.' });
