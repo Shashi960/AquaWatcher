@@ -123,10 +123,11 @@ export const AuthPage = () => {
 
           <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
             {mode === 'register' && <>
-              <label style={label}>Aadhaar-linked mobile number
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={label}>Aadhaar-linked mobile number</label>
                 <input style={inp} value={phone} maxLength="10" placeholder="10-digit mobile number"
                   onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} />
-              </label>
+              </div>
               <button type="button" onClick={verify} disabled={busy || phone.length !== 10}
                 style={{ ...btn, background: '#4a7c59' }}>
                 {busy ? 'Checking...' : 'Verify Mobile Number'}
@@ -140,13 +141,15 @@ export const AuthPage = () => {
               </div>}
             </>}
 
-            <label style={label}>Email address
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={label}>Email address</label>
               <input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </label>
-            <label style={label}>Password
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={label}>Password</label>
               <input style={inp} type="password" value={password} minLength="6"
                 onChange={(e) => setPassword(e.target.value)} required />
-            </label>
+            </div>
 
             {message && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: 8, fontSize: 14 }}>{message}</div>}
 
@@ -166,10 +169,14 @@ export const AuthPage = () => {
           {mode === 'login' && <div style={{
             marginTop: 20, padding: '12px 14px', background: '#e8efe9',
             border: '1px solid #ccd8cd', borderRadius: 8, fontSize: 13, color: '#2c3e2e',
+            wordBreak: 'break-word'
           }}>
-            <strong>AEE Demo Login:</strong><br />
-            <code style={{ background: '#fff', padding: '2px 5px', borderRadius: 4 }}>aee.ward1@aquawatcher.org</code> /{' '}
-            <code style={{ background: '#fff', padding: '2px 5px', borderRadius: 4 }}>engineer123</code>
+            <strong>Assistant Executive Engineer login demo:</strong><br />
+            <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+              <code style={{ background: '#fff', padding: '2px 5px', borderRadius: 4, fontSize: '12px' }}>aee.ward1@aquawatcher.org</code> 
+              <span style={{ color: '#556b56' }}>/</span> 
+              <code style={{ background: '#fff', padding: '2px 5px', borderRadius: 4, fontSize: '12px' }}>engineer123</code>
+            </div>
           </div>}
         </div>
 
