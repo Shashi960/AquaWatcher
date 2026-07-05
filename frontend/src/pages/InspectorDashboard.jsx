@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Droplets, Scale } from 'lucide-react';
+import { Droplets, Scale, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 
 export const InspectorDashboard = () => {
   const { apiFetch, logout, user } = useAuth();
@@ -8,6 +8,7 @@ export const InspectorDashboard = () => {
   const [message, setMessage] = useState('');
   const [remarks, setRemarks] = useState({});
   const [resolvedImages, setResolvedImages] = useState({});
+  const [expanded, setExpanded] = useState({});
 
   const load = async () => {
     const res = await apiFetch('/complaints');
@@ -19,6 +20,10 @@ export const InspectorDashboard = () => {
   useEffect(() => {
     load().catch((error) => setMessage(error.message));
   }, []);
+
+  const toggleExpand = (id) => {
+    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const handleResolvedImageChange = (id, event) => {
     const file = event.target.files?.[0];
@@ -70,6 +75,10 @@ export const InspectorDashboard = () => {
   const input = { width: '100%', boxSizing: 'border-box', padding: '12px 16px', borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 5, fontSize: '15px', background: '#fcfdfc', color: '#102613', outline: 'none', resize: 'vertical', fontFamily: 'inherit' };
   const logoutBtnStyle = { padding: '8px 16px', background: 'none', border: '1px solid #4ade80', borderRadius: 6, color: '#4ade80', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'inherit' };
 
+  // Separate pending and resolved complaints
+  const pendingComplaints = complaints.filter(c => c.status !== 'Resolved');
+  const resolvedComplaints = complaints.filter(c => c.status === 'Resolved');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
       
@@ -93,10 +102,10 @@ export const InspectorDashboard = () => {
         <button onClick={logout} style={logoutBtnStyle}>Logout</button>
       </header>
 
-      {/* ── MAIN CONTENT ── */}
+      {/* ── MAIN LAYOUT (Side-by-Side Grid) ── */}
       <main style={{ maxWidth: 1100, width: '100%', margin: '0 auto', padding: '40px 20px', flex: 1, boxSizing: 'border-box' }}>
         
-        {/* User Info Welcome Panel */}
+        {/* User Info Panel */}
         <div style={{
           background: '#ffffff', border: '1px solid #ccd8cd', borderRadius: 12, padding: '16px 20px', marginBottom: 28,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
@@ -113,63 +122,181 @@ export const InspectorDashboard = () => {
 
         {message && <p style={{ padding: 12, background: '#fef3c7', border: '1px solid #ccd8cd', borderRadius: 8, color: '#b45309', fontWeight: 'bold', marginBottom: 24 }}>{message}</p>}
 
-        <section>
-          <h2 style={{ color: '#102613', fontSize: 24, margin: '0 0 20px 0', fontWeight: 'bold' }}>Ward Water Issues</h2>
-          {complaints.length === 0
-            ? <p style={{ color: '#556b56' }}>No reported issues in this ward.</p>
-            : <div style={{ display: 'grid', gap: 24 }}>
-              {complaints.map((item) => <article key={item._id} style={{ border: '1px solid #ccd8cd', borderRadius: 12, padding: 24, background: '#ffffff', boxShadow: 'var(--shadow)' }}>
-                <h3 style={{ margin: '0 0 6px 0', color: '#102613', fontSize: 20, fontWeight: 'bold' }}>{item.waterSourceName}</h3>
-                
-                <p style={{ margin: '8px 0', fontSize: 14, color: '#556b56' }}>
-                  <strong>Transaction ID:</strong>{' '}
-                  <code style={{ background: '#e8efe9', color: '#2d6a4f', padding: '4px 8px', borderRadius: 6, fontWeight: 'bold' }}>{item.transactionId || 'N/A'}</code>
-                </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: 32,
+          alignItems: 'start'
+        }}>
 
-                <p style={{ margin: '6px 0' }}>
-                  <strong>Resident:</strong> {item.citizenName} &nbsp;·&nbsp;
-                  <strong>Status:</strong>{' '}
-                  <span style={{ fontWeight: 'bold', color: item.status === 'Resolved' ? '#2d6a4f' : item.status === 'In Progress' ? '#2563eb' : '#b45309' }}>{item.status}</span>
-                </p>
-                <p style={{ margin: '6px 0' }}><strong>Test results:</strong> {item.testResults}</p>
-                <p style={{ margin: '8px 0', color: '#2c3e2e' }}>{item.description}</p>
-                
-                {item.testReportImage && <div style={{ marginTop: 14 }}>
-                  <strong>Resident Test Report:</strong><br />
-                  <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: 260, maxHeight: 180, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
-                </div>}
+          {/* LEFT COLUMN: Pending issues */}
+          <section style={{ padding: '28px 24px', background: '#ffffff', borderRadius: 12, border: '1px solid #ccd8cd', boxShadow: 'var(--shadow)' }}>
+            <h2 style={{ color: '#102613', fontSize: 22, margin: '0 0 16px 0', fontWeight: 'bold' }}>Pending Ward Issues</h2>
+            
+            {pendingComplaints.length === 0 ? (
+              <p style={{ color: '#556b56' }}>No pending issues in this ward.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 16 }}>
+                {pendingComplaints.map((item) => {
+                  const isExpanded = !!expanded[item._id];
+                  const hasNotice = item.status === 'Legal Notice Filed';
 
-                {item.status === 'Resolved' && item.resolvedImage && <div style={{ marginTop: 16, padding: 16, background: '#e8efe9', borderRadius: 8, border: '1px solid #ccd8cd' }}>
-                  <strong style={{ color: '#2d6a4f' }}>Resolution Proof Image:</strong><br />
-                  <img src={item.resolvedImage} alt="Resolved proof" style={{ maxWidth: 260, maxHeight: 180, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 8 }} />
-                  {item.engineerRemarks && <p style={{ margin: '10px 0 0 0', fontSize: 14, color: '#2c3e2e' }}><strong>Your Remarks:</strong> {item.engineerRemarks}</p>}
-                </div>}
+                  return (
+                    <article key={item._id} style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
+                      
+                      {/* Collapsible Header */}
+                      <div 
+                        onClick={() => toggleExpand(item._id)}
+                        style={{
+                          padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          cursor: 'pointer', background: hasNotice ? '#fde8e8' : '#e8efe9', 
+                          borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none',
+                          transition: 'background 0.2s'
+                        }}
+                      >
+                        <div style={{ textAlign: 'left' }}>
+                          <h3 style={{ margin: 0, color: hasNotice ? '#9b1c1c' : '#102613', fontSize: 16, fontWeight: 'bold' }}>
+                            {item.waterSourceName}
+                          </h3>
+                          <span style={{ fontSize: 12, color: hasNotice ? '#991b1b' : '#556b56' }}>ID: {item.transactionId || 'N/A'}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{
+                            padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 'bold',
+                            background: hasNotice ? '#dc2626' : item.status === 'In Progress' ? '#2563eb' : '#f59e0b',
+                            color: '#ffffff'
+                          }}>
+                            {item.status}
+                          </span>
+                          {isExpanded ? <ChevronUp size={18} color="#2d6a4f" /> : <ChevronDown size={18} color="#2d6a4f" />}
+                        </div>
+                      </div>
 
-                {item.status !== 'Resolved' && <>
-                  <textarea
-                    value={remarks[item._id] || ''}
-                    onChange={(e) => setRemarks({ ...remarks, [item._id]: e.target.value })}
-                    placeholder="Engineer update / action taken"
-                    rows="2"
-                    style={{ ...input, display: 'block', marginTop: 16 }}
-                  />
+                      {/* Collapsible Body */}
+                      {isExpanded && (
+                        <div style={{ padding: 18, background: '#ffffff', textAlign: 'left', fontSize: 14 }}>
+                          
+                          {hasNotice && (
+                            <div style={{
+                              marginBottom: 14, padding: '10px 12px', background: '#fde8e8', border: '1px solid #f8b4b4',
+                              borderRadius: 8, color: '#9b1c1c', display: 'flex', gap: 8, alignItems: 'center'
+                            }}>
+                              <AlertTriangle size={16} />
+                              <strong style={{ fontSize: 13 }}>Legal Action Notice Filed against you.</strong>
+                            </div>
+                          )}
 
-                  <div style={{ marginTop: 14, padding: 16, background: '#f4f7f4', borderRadius: 8, border: '1px solid #ccd8cd' }}>
-                    <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', color: '#2c3e2e' }}>
-                      Upload Resolved Proof Image (Required to resolve, Max 2 MB):
-                      <input type="file" accept="image/*" onChange={(e) => handleResolvedImageChange(item._id, e)} style={{ display: 'block', marginTop: 8, width: '100%' }} />
-                    </label>
-                    {resolvedImages[item._id] && <img src={resolvedImages[item._id]} alt="Resolved proof preview" style={{ maxWidth: 200, maxHeight: 120, marginTop: 10, borderRadius: 6, border: '1px solid #ccd8cd' }} />}
-                  </div>
+                          <p style={{ margin: '4px 0' }}><strong>Resident:</strong> {item.citizenName}</p>
+                          <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
+                          <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
+                          
+                          {item.testReportImage && <div style={{ marginTop: 12 }}>
+                            <strong>Resident Test Report:</strong><br />
+                            <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
+                          </div>}
 
-                  <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    <button onClick={() => update(item._id, 'In Progress')} style={{ padding: '10px 18px', background: '#f4f7f4', color: '#102613', border: '1px solid #ccd8cd', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>Mark In Progress</button>
-                    <button onClick={() => update(item._id, 'Resolved')} style={{ padding: '10px 18px', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold' }}>Mark Resolved</button>
-                  </div>
-                </>}
-              </article>)}
-            </div>}
-        </section>
+                          <textarea
+                            value={remarks[item._id] || ''}
+                            onChange={(e) => setRemarks({ ...remarks, [item._id]: e.target.value })}
+                            placeholder="Engineer update / action taken"
+                            rows="2"
+                            style={{ ...input, display: 'block', marginTop: 16 }}
+                          />
+
+                          <div style={{ marginTop: 14, padding: 16, background: '#f4f7f4', borderRadius: 8, border: '1px solid #ccd8cd' }}>
+                            <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', color: '#2c3e2e' }}>
+                              Upload Resolved Proof Image (Required to resolve, Max 2 MB):
+                              <input type="file" accept="image/*" onChange={(e) => handleResolvedImageChange(item._id, e)} style={{ display: 'block', marginTop: 8, width: '100%' }} />
+                            </label>
+                            {resolvedImages[item._id] && <img src={resolvedImages[item._id]} alt="Resolved proof preview" style={{ maxWidth: 200, maxHeight: 120, marginTop: 10, borderRadius: 6, border: '1px solid #ccd8cd' }} />}
+                          </div>
+
+                          <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                            <button onClick={() => update(item._id, 'In Progress')} style={{ padding: '10px 18px', background: '#f4f7f4', color: '#102613', border: '1px solid #ccd8cd', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Mark In Progress</button>
+                            <button onClick={() => update(item._id, 'Resolved')} style={{ padding: '10px 18px', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Mark Resolved</button>
+                          </div>
+                          
+                          <p style={{ fontSize: 12, color: '#556b56', marginTop: 16, borderTop: '1px solid #ccd8cd', paddingTop: 10 }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
+                        </div>
+                      )}
+
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* RIGHT COLUMN: Resolved issues */}
+          <section style={{ padding: '28px 24px', background: '#ffffff', borderRadius: 12, border: '1px solid #ccd8cd', boxShadow: 'var(--shadow)' }}>
+            <h2 style={{ color: '#102613', fontSize: 22, margin: '0 0 16px 0', fontWeight: 'bold' }}>Resolved Ward Issues</h2>
+            
+            {resolvedComplaints.length === 0 ? (
+              <p style={{ color: '#556b56' }}>No resolved issues in this ward.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: 16 }}>
+                {resolvedComplaints.map((item) => {
+                  const isExpanded = !!expanded[item._id];
+
+                  return (
+                    <article key={item._id} style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
+                      
+                      {/* Collapsible Header */}
+                      <div 
+                        onClick={() => toggleExpand(item._id)}
+                        style={{
+                          padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          cursor: 'pointer', background: '#e8efe9', borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none',
+                          transition: 'background 0.2s'
+                        }}
+                      >
+                        <div style={{ textAlign: 'left' }}>
+                          <h3 style={{ margin: 0, color: '#2d6a4f', fontSize: 16, fontWeight: 'bold' }}>
+                            {item.waterSourceName}
+                          </h3>
+                          <span style={{ fontSize: 12, color: '#556b56' }}>ID: {item.transactionId || 'N/A'}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{
+                            padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 'bold',
+                            background: '#2d6a4f', color: '#ffffff'
+                          }}>
+                            Resolved
+                          </span>
+                          {isExpanded ? <ChevronUp size={18} color="#2d6a4f" /> : <ChevronDown size={18} color="#2d6a4f" />}
+                        </div>
+                      </div>
+
+                      {/* Collapsible Body */}
+                      {isExpanded && (
+                        <div style={{ padding: 18, background: '#ffffff', textAlign: 'left', fontSize: 14 }}>
+                          <p style={{ margin: '4px 0' }}><strong>Resident:</strong> {item.citizenName}</p>
+                          <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
+                          <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
+                          
+                          {item.testReportImage && <div style={{ marginTop: 12 }}>
+                            <strong>Resident Test Report:</strong><br />
+                            <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
+                          </div>}
+
+                          {item.resolvedImage && <div style={{ marginTop: 14, padding: 12, background: '#e8efe9', borderRadius: 8, border: '1px solid #ccd8cd' }}>
+                            <strong style={{ color: '#2d6a4f' }}>Resolution Proof Image:</strong><br />
+                            <img src={item.resolvedImage} alt="Resolved proof" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
+                            {item.engineerRemarks && <p style={{ margin: '8px 0 0 0', fontSize: 13, color: '#2c3e2e' }}><strong>Your Remarks:</strong> {item.engineerRemarks}</p>}
+                          </div>}
+                          
+                          <p style={{ fontSize: 12, color: '#556b56', marginTop: 16, borderTop: '1px solid #ccd8cd', paddingTop: 10 }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
+                        </div>
+                      )}
+
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+        </div>
       </main>
 
       {/* ── FOOTER (Dark Green) ── */}
