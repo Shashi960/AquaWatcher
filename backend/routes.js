@@ -187,10 +187,10 @@ router.post('/complaints/:id/legal-notice', authenticateToken, authorizeRoles('u
   if (!complaint || complaint.citizenId !== req.user.id) return res.status(404).json({ message: 'Your complaint was not found.' });
   if (complaint.status === 'Resolved') return res.status(400).json({ message: 'A legal notice cannot be filed for a resolved complaint.' });
   
-  // Verify it is filed within a week of complaint raise
+  // Verify it is filed after 7 days of complaint raise
   const elapsed = Date.now() - new Date(complaint.createdAt).getTime();
-  if (elapsed > WEEK_MS) {
-    return res.status(400).json({ message: 'A legal notice can only be filed within a week (7 days) of the complaint being raised.' });
+  if (elapsed < WEEK_MS) {
+    return res.status(400).json({ message: 'A legal notice can only be filed after 7 days (1 week) of the complaint being raised.' });
   }
 
   await complaints.updateOne({ _id: complaint._id }, { $set: { legalNoticeFiledAt: new Date().toISOString(), status: 'Legal Notice Filed' } });
