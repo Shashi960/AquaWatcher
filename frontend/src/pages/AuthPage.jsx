@@ -116,7 +116,7 @@ export const AuthPage = () => {
       }}>
 
         {/* ── LEFT: AUTH CARD ── */}
-        <div style={{
+        <div className="hover-card" style={{
           background: '#fff', borderRadius: 16,
           border: '1px solid #ccd8cd',
           boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
@@ -145,6 +145,7 @@ export const AuthPage = () => {
               </div>
               {mode === 'register' && <>
                 <button type="button" onClick={verify} disabled={busy || phone.length !== 10}
+                  className="hover-button"
                   style={{ ...btn, background: '#4a7c59' }}>
                   {busy ? 'Checking...' : 'Verify Mobile Number'}
                 </button>
@@ -170,7 +171,7 @@ export const AuthPage = () => {
 
             {message && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: 8, fontSize: 14 }}>{message}</div>}
 
-            <button type="submit" disabled={busy} style={{ ...btn, marginTop: 4 }}>
+            <button type="submit" disabled={busy} className="hover-button" style={{ ...btn, marginTop: 4 }}>
               {mode === 'register' ? <><UserPlus size={16} /> Complete Registration</> : mode === 'forgot' ? 'Reset Password' : <><LogIn size={16} /> Sign In</>}
             </button>
           </form>
@@ -204,7 +205,7 @@ export const AuthPage = () => {
         </div>
 
         {/* ── RIGHT: TRACKING CARD ── */}
-        <div style={{
+        <div className="hover-card" style={{
           background: '#fff', borderRadius: 16,
           border: '1px solid #ccd8cd',
           boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
@@ -228,7 +229,7 @@ export const AuthPage = () => {
               onChange={(e) => setTrackingId(e.target.value)}
               required
             />
-            <button type="submit" disabled={trackingBusy} style={{
+            <button type="submit" disabled={trackingBusy} className="hover-button" style={{
               ...btn, width: 'auto', padding: '11px 22px', flex: '0 0 auto',
             }}>
               {trackingBusy ? 'Searching...' : 'Track'}

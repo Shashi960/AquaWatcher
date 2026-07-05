@@ -107,3 +107,36 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* Card and button transition animations */
+.hover-card {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s ease;
+}
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(45, 106, 79, 0.03) !important;
+  border-color: #a3c9a8 !important;
+}
+
+.hover-button {
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.hover-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.18);
+  opacity: 0.95;
+}
+.hover-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.accordion-header {
+  transition: background-color 0.25s ease, border-bottom-color 0.25s ease;
+}
+.accordion-header:hover {
+  background-color: #dfebd5 !important;
+}
+
+.accordion-body {
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out, padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}

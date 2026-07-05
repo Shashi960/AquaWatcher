@@ -198,15 +198,15 @@ export const CitizenDashboard = () => {
                   const eligible = item.status !== 'Resolved' && timeLeft <= 0;
 
                   return (
-                    <article key={item._id} style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
+                    <article key={item._id} className="hover-card" style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
                       
                       {/* Collapsible Header */}
                       <div 
                         onClick={() => toggleExpand(item._id)}
+                        className="accordion-header"
                         style={{
                           padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          cursor: 'pointer', background: '#e8efe9', borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none',
-                          transition: 'background 0.2s'
+                          cursor: 'pointer', background: '#e8efe9', borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none'
                         }}
                       >
                         <div style={{ textAlign: 'left' }}>
@@ -226,64 +226,73 @@ export const CitizenDashboard = () => {
                       </div>
 
                       {/* Collapsible Body */}
-                      {isExpanded && (
-                        <div style={{ padding: 18, background: '#ffffff', textAlign: 'left', fontSize: 14 }}>
-                          <p style={{ margin: '4px 0' }}><strong>Assigned AEE:</strong> {item.assignedEngineerName}</p>
-                          <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
-                          <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
+                      <div 
+                        className="accordion-body"
+                        style={{
+                          maxHeight: isExpanded ? '1000px' : '0px',
+                          opacity: isExpanded ? 1 : 0,
+                          padding: isExpanded ? '18px' : '0px 18px',
+                          overflow: 'hidden',
+                          background: '#ffffff',
+                          textAlign: 'left',
+                          fontSize: '14px'
+                        }}
+                      >
+                        <p style={{ margin: '4px 0' }}><strong>Assigned AEE:</strong> {item.assignedEngineerName}</p>
+                        <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
+                        <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
+                        
+                        {item.testReportImage && <div style={{ marginTop: 12 }}>
+                          <strong>Test Report Image:</strong><br />
+                          <img src={item.testReportImage} alt="Submitted test report" style={{ maxWidth: '100%', maxHeight: 150, marginTop: 6, borderRadius: 8, border: '1px solid #ccd8cd' }} />
+                        </div>}
+
+                        {item.resolvedImage && <div style={{ marginTop: 14, padding: 12, background: '#e8efe9', borderRadius: 8, border: '1px solid #ccd8cd' }}>
+                          <strong style={{ color: '#2d6a4f' }}>Resolution Proof Image:</strong><br />
+                          <img src={item.resolvedImage} alt="Resolution proof" style={{ maxWidth: '100%', maxHeight: 150, marginTop: 6, borderRadius: 8, border: '1px solid #ccd8cd' }} />
+                          {item.engineerRemarks && <p style={{ margin: '8px 0 0 0', fontSize: 13, color: '#2c3e2e' }}><strong>Remarks:</strong> {item.engineerRemarks}</p>}
+                        </div>}
+
+                        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #ccd8cd' }}>
+                          <p style={{ fontSize: 12, color: '#556b56' }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
                           
-                          {item.testReportImage && <div style={{ marginTop: 12 }}>
-                            <strong>Test Report Image:</strong><br />
-                            <img src={item.testReportImage} alt="Submitted test report" style={{ maxWidth: '100%', maxHeight: 150, marginTop: 6, borderRadius: 8, border: '1px solid #ccd8cd' }} />
-                          </div>}
-
-                          {item.resolvedImage && <div style={{ marginTop: 14, padding: 12, background: '#e8efe9', borderRadius: 8, border: '1px solid #ccd8cd' }}>
-                            <strong style={{ color: '#2d6a4f' }}>Resolution Proof Image:</strong><br />
-                            <img src={item.resolvedImage} alt="Resolution proof" style={{ maxWidth: '100%', maxHeight: 150, marginTop: 6, borderRadius: 8, border: '1px solid #ccd8cd' }} />
-                            {item.engineerRemarks && <p style={{ margin: '8px 0 0 0', fontSize: 13, color: '#2c3e2e' }}><strong>Remarks:</strong> {item.engineerRemarks}</p>}
-                          </div>}
-
-                          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #ccd8cd' }}>
-                            <p style={{ fontSize: 12, color: '#556b56' }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
-                            
-                            {/* Lawyer Notice Countdown/Action Panel */}
-                            {item.status !== 'Resolved' && (
-                              <div style={{
-                                marginTop: 12, padding: '12px 14px', borderRadius: 8,
-                                background: eligible ? '#fde8e8' : '#e8efe9',
-                                border: `1px solid ${eligible ? '#f8b4b4' : '#ccd8cd'}`,
-                                color: eligible ? '#9b1c1c' : '#2c3e2e'
-                              }}>
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                  <AlertTriangle size={16} />
-                                  <strong style={{ fontSize: 13 }}>
-                                    {eligible ? 'AEE SLA Exceeded' : 'Legal Compliance Countdown'}
-                                  </strong>
-                                </div>
-                                <p style={{ margin: '4px 0 0 0', fontSize: 13 }}>
-                                  {eligible ? (
-                                    'This complaint has remained unresolved for more than 7 days. You are now legally eligible to file an official lawyer notice against the AEE.'
-                                  ) : (
-                                    `AEE ${item.assignedEngineerName} has ${daysLeft} days and ${hoursLeft} hours left to resolve this issue. You can file an official lawyer notice after 7 days if unresolved.`
-                                  )}
-                                </p>
+                          {/* Lawyer Notice Countdown/Action Panel */}
+                          {item.status !== 'Resolved' && (
+                            <div style={{
+                              marginTop: 12, padding: '12px 14px', borderRadius: 8,
+                              background: eligible ? '#fde8e8' : '#e8efe9',
+                              border: `1px solid ${eligible ? '#f8b4b4' : '#ccd8cd'}`,
+                              color: eligible ? '#9b1c1c' : '#2c3e2e'
+                            }}>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <AlertTriangle size={16} />
+                                <strong style={{ fontSize: 13 }}>
+                                  {eligible ? 'AEE SLA Exceeded' : 'Legal Compliance Countdown'}
+                                </strong>
                               </div>
-                            )}
+                              <p style={{ margin: '4px 0 0 0', fontSize: 13 }}>
+                                {eligible ? (
+                                  'This complaint has remained unresolved for more than 7 days. You are now legally eligible to file an official lawyer notice against the AEE.'
+                                ) : (
+                                  `AEE ${item.assignedEngineerName} has ${daysLeft} days and ${hoursLeft} hours left to resolve this issue. You can file an official lawyer notice after 7 days if unresolved.`
+                                )}
+                              </p>
+                            </div>
+                          )}
 
-                            {eligible && !item.legalNoticeFiledAt && (
-                              <button onClick={() => fileNotice(item._id)} style={{ marginTop: 12, padding: '10px 18px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
-                                File official lawyer notice against AEE
-                              </button>
-                            )}
+                          {eligible && !item.legalNoticeFiledAt && (
+                            <button onClick={() => fileNotice(item._id)} className="hover-button" style={{ marginTop: 12, padding: '10px 18px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+                              File official lawyer notice against AEE
+                            </button>
+                          )}
 
-                            {item.legalNoticeFiledAt && (
-                              <div style={{ marginTop: 12, padding: '10px 12px', background: '#fde8e8', color: '#9b1c1c', fontWeight: 'bold', borderRadius: 6, border: '1px solid #f8b4b4' }}>
-                                ⚖️ Official lawyer notice filed on: {new Date(item.legalNoticeFiledAt).toLocaleString()}
-                              </div>
-                            )}
-                          </div>
+                          {item.legalNoticeFiledAt && (
+                            <div style={{ marginTop: 12, padding: '10px 12px', background: '#fde8e8', color: '#9b1c1c', fontWeight: 'bold', borderRadius: 6, border: '1px solid #f8b4b4' }}>
+                              ⚖️ Official lawyer notice filed on: {new Date(item.legalNoticeFiledAt).toLocaleString()}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
 
                     </article>
                   );

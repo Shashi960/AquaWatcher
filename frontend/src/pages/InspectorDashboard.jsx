@@ -142,16 +142,16 @@ export const InspectorDashboard = () => {
                   const hasNotice = item.status === 'Legal Notice Filed';
 
                   return (
-                    <article key={item._id} style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
+                    <article key={item._id} className="hover-card" style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
                       
                       {/* Collapsible Header */}
                       <div 
                         onClick={() => toggleExpand(item._id)}
+                        className="accordion-header"
                         style={{
                           padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                           cursor: 'pointer', background: hasNotice ? '#fde8e8' : '#e8efe9', 
-                          borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none',
-                          transition: 'background 0.2s'
+                          borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none'
                         }}
                       >
                         <div style={{ textAlign: 'left' }}>
@@ -173,52 +173,60 @@ export const InspectorDashboard = () => {
                       </div>
 
                       {/* Collapsible Body */}
-                      {isExpanded && (
-                        <div style={{ padding: 18, background: '#ffffff', textAlign: 'left', fontSize: 14 }}>
-                          
-                          {hasNotice && (
-                            <div style={{
-                              marginBottom: 14, padding: '10px 12px', background: '#fde8e8', border: '1px solid #f8b4b4',
-                              borderRadius: 8, color: '#9b1c1c', display: 'flex', gap: 8, alignItems: 'center'
-                            }}>
-                              <AlertTriangle size={16} />
-                              <strong style={{ fontSize: 13 }}>Legal Action Notice Filed against you.</strong>
-                            </div>
-                          )}
-
-                          <p style={{ margin: '4px 0' }}><strong>Resident:</strong> {item.citizenName}</p>
-                          <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
-                          <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
-                          
-                          {item.testReportImage && <div style={{ marginTop: 12 }}>
-                            <strong>Resident Test Report:</strong><br />
-                            <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
-                          </div>}
-
-                          <textarea
-                            value={remarks[item._id] || ''}
-                            onChange={(e) => setRemarks({ ...remarks, [item._id]: e.target.value })}
-                            placeholder="Engineer update / action taken"
-                            rows="2"
-                            style={{ ...input, display: 'block', marginTop: 16 }}
-                          />
-
-                          <div style={{ marginTop: 14, padding: 16, background: '#f4f7f4', borderRadius: 8, border: '1px solid #ccd8cd' }}>
-                            <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', color: '#2c3e2e' }}>
-                              Upload Resolved Proof Image (Required to resolve, Max 2 MB):
-                              <input type="file" accept="image/*" onChange={(e) => handleResolvedImageChange(item._id, e)} style={{ display: 'block', marginTop: 8, width: '100%' }} />
-                            </label>
-                            {resolvedImages[item._id] && <img src={resolvedImages[item._id]} alt="Resolved proof preview" style={{ maxWidth: 200, maxHeight: 120, marginTop: 10, borderRadius: 6, border: '1px solid #ccd8cd' }} />}
+                      <div 
+                        className="accordion-body"
+                        style={{
+                          maxHeight: isExpanded ? '1000px' : '0px',
+                          opacity: isExpanded ? 1 : 0,
+                          padding: isExpanded ? '18px' : '0px 18px',
+                          overflow: 'hidden',
+                          background: '#ffffff',
+                          textAlign: 'left',
+                          fontSize: '14px'
+                        }}
+                      >
+                        {hasNotice && (
+                          <div style={{
+                            marginBottom: 14, padding: '10px 12px', background: '#fde8e8', border: '1px solid #f8b4b4',
+                            borderRadius: 8, color: '#9b1c1c', display: 'flex', gap: 8, alignItems: 'center'
+                          }}>
+                            <AlertTriangle size={16} />
+                            <strong style={{ fontSize: 13 }}>Legal Action Notice Filed against you.</strong>
                           </div>
+                        )}
 
-                          <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                            <button onClick={() => update(item._id, 'In Progress')} style={{ padding: '10px 18px', background: '#f4f7f4', color: '#102613', border: '1px solid #ccd8cd', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Mark In Progress</button>
-                            <button onClick={() => update(item._id, 'Resolved')} style={{ padding: '10px 18px', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Mark Resolved</button>
-                          </div>
-                          
-                          <p style={{ fontSize: 12, color: '#556b56', marginTop: 16, borderTop: '1px solid #ccd8cd', paddingTop: 10 }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
+                        <p style={{ margin: '4px 0' }}><strong>Resident:</strong> {item.citizenName}</p>
+                        <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
+                        <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
+                        
+                        {item.testReportImage && <div style={{ marginTop: 12 }}>
+                          <strong>Resident Test Report:</strong><br />
+                          <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
+                        </div>}
+
+                        <textarea
+                          value={remarks[item._id] || ''}
+                          onChange={(e) => setRemarks({ ...remarks, [item._id]: e.target.value })}
+                          placeholder="Engineer update / action taken"
+                          rows="2"
+                          style={{ ...input, display: 'block', marginTop: 16 }}
+                        />
+
+                        <div style={{ marginTop: 14, padding: 16, background: '#f4f7f4', borderRadius: 8, border: '1px solid #ccd8cd' }}>
+                          <label style={{ display: 'block', fontSize: 14, fontWeight: 'bold', color: '#2c3e2e' }}>
+                            Upload Resolved Proof Image (Required to resolve, Max 2 MB):
+                            <input type="file" accept="image/*" onChange={(e) => handleResolvedImageChange(item._id, e)} style={{ display: 'block', marginTop: 8, width: '100%' }} />
+                          </label>
+                          {resolvedImages[item._id] && <img src={resolvedImages[item._id]} alt="Resolved proof preview" style={{ maxWidth: 200, maxHeight: 120, marginTop: 10, borderRadius: 6, border: '1px solid #ccd8cd' }} />}
                         </div>
-                      )}
+
+                        <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                          <button onClick={() => update(item._id, 'In Progress')} className="hover-button" style={{ padding: '10px 18px', background: '#f4f7f4', color: '#102613', border: '1px solid #ccd8cd', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Mark In Progress</button>
+                          <button onClick={() => update(item._id, 'Resolved')} className="hover-button" style={{ padding: '10px 18px', background: '#2d6a4f', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>Mark Resolved</button>
+                        </div>
+                        
+                        <p style={{ fontSize: 12, color: '#556b56', marginTop: 16, borderTop: '1px solid #ccd8cd', paddingTop: 10 }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
+                      </div>
 
                     </article>
                   );
@@ -239,15 +247,15 @@ export const InspectorDashboard = () => {
                   const isExpanded = !!expanded[item._id];
 
                   return (
-                    <article key={item._id} style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
+                    <article key={item._id} className="hover-card" style={{ border: '1px solid #ccd8cd', borderRadius: 10, overflow: 'hidden', background: '#fbfcfb' }}>
                       
                       {/* Collapsible Header */}
                       <div 
                         onClick={() => toggleExpand(item._id)}
+                        className="accordion-header"
                         style={{
                           padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          cursor: 'pointer', background: '#e8efe9', borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none',
-                          transition: 'background 0.2s'
+                          cursor: 'pointer', background: '#e8efe9', borderBottom: isExpanded ? '1px solid #ccd8cd' : 'none'
                         }}
                       >
                         <div style={{ textAlign: 'left' }}>
@@ -268,26 +276,35 @@ export const InspectorDashboard = () => {
                       </div>
 
                       {/* Collapsible Body */}
-                      {isExpanded && (
-                        <div style={{ padding: 18, background: '#ffffff', textAlign: 'left', fontSize: 14 }}>
-                          <p style={{ margin: '4px 0' }}><strong>Resident:</strong> {item.citizenName}</p>
-                          <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
-                          <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
-                          
-                          {item.testReportImage && <div style={{ marginTop: 12 }}>
-                            <strong>Resident Test Report:</strong><br />
-                            <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
-                          </div>}
+                      <div 
+                        className="accordion-body"
+                        style={{
+                          maxHeight: isExpanded ? '1000px' : '0px',
+                          opacity: isExpanded ? 1 : 0,
+                          padding: isExpanded ? '18px' : '0px 18px',
+                          overflow: 'hidden',
+                          background: '#ffffff',
+                          textAlign: 'left',
+                          fontSize: '14px'
+                        }}
+                      >
+                        <p style={{ margin: '4px 0' }}><strong>Resident:</strong> {item.citizenName}</p>
+                        <p style={{ margin: '4px 0' }}><strong>Test results:</strong> {item.testResults}</p>
+                        <p style={{ margin: '8px 0', color: '#2c3e2e', lineHeight: 1.5 }}>{item.description}</p>
+                        
+                        {item.testReportImage && <div style={{ marginTop: 12 }}>
+                          <strong>Resident Test Report:</strong><br />
+                          <img src={item.testReportImage} alt="Resident test report" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
+                        </div>}
 
-                          {item.resolvedImage && <div style={{ marginTop: 14, padding: 12, background: '#e8efe9', borderRadius: 8, border: '1px solid #ccd8cd' }}>
-                            <strong style={{ color: '#2d6a4f' }}>Resolution Proof Image:</strong><br />
-                            <img src={item.resolvedImage} alt="Resolved proof" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
-                            {item.engineerRemarks && <p style={{ margin: '8px 0 0 0', fontSize: 13, color: '#2c3e2e' }}><strong>Your Remarks:</strong> {item.engineerRemarks}</p>}
-                          </div>}
-                          
-                          <p style={{ fontSize: 12, color: '#556b56', marginTop: 16, borderTop: '1px solid #ccd8cd', paddingTop: 10 }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
-                        </div>
-                      )}
+                        {item.resolvedImage && <div style={{ marginTop: 14, padding: 12, background: '#e8efe9', borderRadius: 8, border: '1px solid #ccd8cd' }}>
+                          <strong style={{ color: '#2d6a4f' }}>Resolution Proof Image:</strong><br />
+                          <img src={item.resolvedImage} alt="Resolved proof" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8, border: '1px solid #ccd8cd', marginTop: 6 }} />
+                          {item.engineerRemarks && <p style={{ margin: '8px 0 0 0', fontSize: 13, color: '#2c3e2e' }}><strong>Your Remarks:</strong> {item.engineerRemarks}</p>}
+                        </div>}
+                        
+                        <p style={{ fontSize: 12, color: '#556b56', marginTop: 16, borderTop: '1px solid #ccd8cd', paddingTop: 10 }}>Filed: {new Date(item.createdAt).toLocaleString()}</p>
+                      </div>
 
                     </article>
                   );
