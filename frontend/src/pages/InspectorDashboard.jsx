@@ -84,11 +84,13 @@ export const InspectorDashboard = () => {
       
       {/* ── TOP HEADER (Dark Green) ── */}
       <header style={{
-        background: 'rgba(16, 38, 19, 0.88)',
-        backdropFilter: 'blur(6px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        background: '#102613',
         padding: '18px 24px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: '2px solid rgba(45,106,79,0.6)',
+        borderBottom: '2px solid #2d6a4f',
         width: '100%',
         boxSizing: 'border-box'
       }}>
