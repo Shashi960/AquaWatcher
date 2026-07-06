@@ -65,8 +65,10 @@ router.post('/auth/register', async (req, res) => {
     role: 'user',
     createdAt: new Date().toISOString()
   };
-  await users.insertOne(user);
-  res.status(201).json({ token: createToken(user), user: publicUser(user) });
+  const result = await users.insertOne(user);
+  // Re-fetch the saved user so the returned token contains the real _id assigned by the DB
+  const savedUser = await users.findOne({ _id: result.insertedId });
+  res.status(201).json({ token: createToken(savedUser), user: publicUser(savedUser) });
 });
 
 router.post('/auth/login', async (req, res) => {
