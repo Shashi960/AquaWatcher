@@ -48,8 +48,8 @@ const startServer = async () => {
     await connectDB();
     app.listen(PORT, () => {
       console.log(`====================================================`);
-      console.log(` AquaWatcher API Server listening on port ${PORT}`);
-      console.log(` Health check: http://localhost:${PORT}/health`);
+      console.log(`AquaWatcher API Server listening on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/health`);
       console.log(`====================================================`);
     });
   } catch (err) {
