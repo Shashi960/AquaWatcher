@@ -171,7 +171,8 @@ router.post('/complaints', authenticateToken, authorizeRoles('user'), async (req
     const availableOn = new Date(new Date(lastComplaint.createdAt).getTime() + WEEK_MS).toLocaleString();
     return res.status(429).json({ message: `Only one issue can be filed in a 7-day period. You can file another after ${availableOn}.` });
   }
-  const engineer = (await getCollection('users').find({ role: 'assistant_engineer' }).toArray()).find((item) => item.ward === req.user.ward);
+  const engineers = await getCollection('users').find({ role: 'assistant_engineer' }).toArray();
+  const engineer = engineers.find((item) => item.ward === req.user.ward) || engineers[0];
   const now = new Date();
 
   // Generate unique transaction ID
@@ -202,7 +203,7 @@ router.post('/complaints', authenticateToken, authorizeRoles('user'), async (req
 });
 
 router.get('/complaints', authenticateToken, async (req, res) => {
-  const query = req.user.role === 'user' ? { citizenId: req.user.id } : { ward: req.user.ward };
+  const query = req.user.role === 'user' ? { citizenId: req.user.id } : {};
   const complaints = await getCollection('complaints').find(query).toArray();
   res.json(complaints.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
 });
@@ -215,7 +216,7 @@ router.post('/complaints/:id/status', authenticateToken, authorizeRoles('assista
   }
   const complaints = getCollection('complaints');
   const complaint = await complaints.findOne({ _id: req.params.id });
-  if (!complaint || complaint.ward !== req.user.ward) return res.status(404).json({ message: 'Complaint not found for your ward.' });
+  if (!complaint) return res.status(404).json({ message: 'Complaint not found.' });
   await complaints.updateOne({ _id: complaint._id }, { $set: { status, engineerRemarks: remarks || '', resolvedImage: resolvedImage || null, resolvedAt: status === 'Resolved' ? new Date().toISOString() : null } });
   res.json({ message: 'Complaint status updated.' });
 });
@@ -238,7 +239,9 @@ router.post('/complaints/:id/legal-notice', authenticateToken, authorizeRoles('u
 
 // Public tracking endpoint - no login required
 router.get('/complaints/track/:transactionId', async (req, res) => {
-  const complaint = await getCollection('complaints').findOne({ transactionId: req.params.transactionId });
+  let tid = String(req.params.transactionId || '').trim();
+  tid = tid.replace(/^(id|ID):\s*/, '');
+  const complaint = await getCollection('complaints').findOne({ transactionId: tid });
   if (!complaint) {
     return res.status(404).json({ message: 'Complaint with this transaction ID was not found.' });
   }

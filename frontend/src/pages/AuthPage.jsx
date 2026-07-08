@@ -106,10 +106,12 @@ export const AuthPage = () => {
 
   const track = async (event) => {
     event.preventDefault();
-    if (!trackingId.trim()) return;
+    let cleanedId = trackingId.trim();
+    cleanedId = cleanedId.replace(/^(id|ID):\s*/, '');
+    if (!cleanedId) return;
     setTrackingBusy(true); setTrackingError(''); setTrackingResult(null);
     try {
-      const res = await fetch(`/api/complaints/track/${trackingId.trim()}`);
+      const res = await fetch(`/api/complaints/track/${cleanedId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Tracking failed');
       setTrackingResult(data);
