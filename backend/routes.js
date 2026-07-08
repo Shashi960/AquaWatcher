@@ -40,35 +40,72 @@ router.post('/auth/verify-phone', async (req, res) => {
 });
 
 router.post('/auth/register', async (req, res) => {
-  const { phone, email, password } = req.body;
+  const { phone, email, password, isTenant, name, aadhaarNumber, originalAddress, rentalCopyImage, ward } = req.body;
   const normalizedPhone = String(phone || '').replace(/\D/g, '');
   if (!normalizedPhone || !email || !password) {
     return res.status(400).json({ message: 'Phone number, email, and password are required.' });
   }
   if (password.length < 6) return res.status(400).json({ message: 'Password must contain at least 6 characters.' });
 
-  const residents = getCollection('verifiedResidents');
-  const resident = await residents.findOne({ phone: normalizedPhone });
-  if (!resident) return res.status(403).json({ message: 'Only Aadhaar-verified residents can register.' });
-
   const users = getCollection('users');
-  if (await users.findOne({ phone: normalizedPhone })) return res.status(409).json({ message: 'This mobile number is already registered.' });
-  if (await users.findOne({ email: String(email).toLowerCase() })) return res.status(409).json({ message: 'This email is already registered.' });
 
-  const user = {
-    name: resident.name,
-    phone: normalizedPhone,
-    ward: resident.ward,
-    address: resident.address,
-    email: String(email).toLowerCase(),
-    password: await bcrypt.hash(password, 10),
-    role: 'user',
-    createdAt: new Date().toISOString()
-  };
-  const result = await users.insertOne(user);
-  // Re-fetch the saved user so the returned token contains the real _id assigned by the DB
-  const savedUser = await users.findOne({ _id: result.insertedId });
-  res.status(201).json({ token: createToken(savedUser), user: publicUser(savedUser) });
+  if (isTenant) {
+    if (!name || !aadhaarNumber || !originalAddress || !rentalCopyImage || !ward) {
+      return res.status(400).json({ message: 'All tenant fields (Full Name, Aadhaar Number, Original Address, Rental Agreement Copy, and Current Ward) are required.' });
+    }
+    const cleanAadhaar = String(aadhaarNumber).replace(/\D/g, '');
+    if (cleanAadhaar.length !== 12) {
+      return res.status(400).json({ message: 'Aadhaar number must be exactly 12 digits.' });
+    }
+
+    if (await users.findOne({ phone: normalizedPhone })) {
+      return res.status(409).json({ message: 'This mobile number is already registered.' });
+    }
+    if (await users.findOne({ email: String(email).toLowerCase() })) {
+      return res.status(409).json({ message: 'This email is already registered.' });
+    }
+
+    const user = {
+      name,
+      phone: normalizedPhone,
+      ward,
+      address: `Tenant at ${ward} (Original Address: ${originalAddress})`,
+      email: String(email).toLowerCase(),
+      password: await bcrypt.hash(password, 10),
+      role: 'user',
+      isTenant: true,
+      aadhaarNumber: cleanAadhaar,
+      originalAddress,
+      rentalCopyImage,
+      createdAt: new Date().toISOString()
+    };
+    const result = await users.insertOne(user);
+    const savedUser = await users.findOne({ _id: result.insertedId });
+    res.status(201).json({ token: createToken(savedUser), user: publicUser(savedUser) });
+  } else {
+    const residents = getCollection('verifiedResidents');
+    const resident = await residents.findOne({ phone: normalizedPhone });
+    if (!resident) return res.status(403).json({ message: 'Only Aadhaar-verified residents can register.' });
+
+    if (await users.findOne({ phone: normalizedPhone })) return res.status(409).json({ message: 'This mobile number is already registered.' });
+    if (await users.findOne({ email: String(email).toLowerCase() })) return res.status(409).json({ message: 'This email is already registered.' });
+
+    const user = {
+      name: resident.name,
+      phone: normalizedPhone,
+      ward: resident.ward,
+      address: resident.address,
+      email: String(email).toLowerCase(),
+      password: await bcrypt.hash(password, 10),
+      role: 'user',
+      isTenant: false,
+      createdAt: new Date().toISOString()
+    };
+    const result = await users.insertOne(user);
+    // Re-fetch the saved user so the returned token contains the real _id assigned by the DB
+    const savedUser = await users.findOne({ _id: result.insertedId });
+    res.status(201).json({ token: createToken(savedUser), user: publicUser(savedUser) });
+  }
 });
 
 router.post('/auth/login', async (req, res) => {

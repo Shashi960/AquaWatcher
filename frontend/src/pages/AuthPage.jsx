@@ -30,6 +30,15 @@ export const AuthPage = () => {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
+  // Tenant registration states
+  const [isTenant, setIsTenant] = useState(false);
+  const [tenantName, setTenantName] = useState('');
+  const [tenantAadhaar, setTenantAadhaar] = useState('');
+  const [tenantPhone, setTenantPhone] = useState('');
+  const [tenantOriginalAddress, setTenantOriginalAddress] = useState('');
+  const [tenantRentalCopy, setTenantRentalCopy] = useState('');
+  const [tenantWard, setTenantWard] = useState('Ward 1 - Gandhi Nagar');
+
   const [trackingId, setTrackingId] = useState('');
   const [trackingResult, setTrackingResult] = useState(null);
   const [trackingError, setTrackingError] = useState('');
@@ -38,6 +47,19 @@ export const AuthPage = () => {
   const verify = async () => {
     setBusy(true); setMessage('');
     try { setResident(await verifyPhone(phone)); } catch (error) { setResident(null); setMessage(error.message); } finally { setBusy(false); }
+  };
+
+  const handleRentalCopyChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image file size must be less than 2 MB.");
+      e.target.value = "";
+      return setTenantRentalCopy('');
+    }
+    const reader = new FileReader();
+    reader.onload = () => setTenantRentalCopy(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const submit = async (event) => {
@@ -57,8 +79,27 @@ export const AuthPage = () => {
         setEmail('');
         setPassword('');
       } else if (mode === 'register') {
-        if (!resident) throw new Error('Verify the Aadhaar-linked mobile number first.');
-        await register(phone, email, password);
+        if (isTenant) {
+          await register({
+            isTenant: true,
+            name: tenantName,
+            aadhaarNumber: tenantAadhaar,
+            phone: tenantPhone,
+            originalAddress: tenantOriginalAddress,
+            rentalCopyImage: tenantRentalCopy,
+            ward: tenantWard,
+            email,
+            password
+          });
+        } else {
+          if (!resident) throw new Error('Verify the Aadhaar-linked mobile number first.');
+          await register({
+            isTenant: false,
+            phone,
+            email,
+            password
+          });
+        }
       } else await login(email, password);
     } catch (error) { setMessage(error.message); } finally { setBusy(false); }
   };
@@ -139,13 +180,39 @@ export const AuthPage = () => {
           </div>
 
           <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
-            {(mode === 'register' || mode === 'forgot') && <>
+            {mode === 'register' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
+                <input 
+                  type="checkbox" 
+                  id="tenantCheckbox" 
+                  checked={isTenant} 
+                  onChange={(e) => {
+                    setIsTenant(e.target.checked);
+                    setMessage('');
+                  }}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <label htmlFor="tenantCheckbox" style={{ fontSize: 14, fontWeight: '600', color: '#2c3e2e', cursor: 'pointer' }}>
+                  Register as Tenant / Rental Resident
+                </label>
+              </div>
+            )}
+
+            {mode === 'forgot' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={label}>Aadhaar-linked mobile number</label>
                 <input style={inp} value={phone} maxLength="10" placeholder="10-digit mobile number"
-                  onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} required />
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} required />
               </div>
-              {mode === 'register' && <>
+            )}
+
+            {mode === 'register' && !isTenant && (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Aadhaar-linked mobile number</label>
+                  <input style={inp} value={phone} maxLength="10" placeholder="10-digit mobile number"
+                    onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} required />
+                </div>
                 <button type="button" onClick={verify} disabled={busy || phone.length !== 10}
                   className="hover-button"
                   style={{ ...btn, background: '#4a7c59' }}>
@@ -158,8 +225,47 @@ export const AuthPage = () => {
                   <ShieldCheck size={16} style={{ color: '#2d6a4f', marginRight: 6, verticalAlign: 'middle' }} />
                   <strong>Verified:</strong> {resident.name} · {resident.ward}
                 </div>}
-              </>}
-            </>}
+              </>
+            )}
+
+            {mode === 'register' && isTenant && (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Full Name</label>
+                  <input style={inp} value={tenantName} onChange={(e) => setTenantName(e.target.value)} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Aadhaar Number (12 digits)</label>
+                  <input style={inp} value={tenantAadhaar} maxLength="12" placeholder="12-digit Aadhaar number"
+                    onChange={(e) => setTenantAadhaar(e.target.value.replace(/\D/g, ''))} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Mobile Number</label>
+                  <input style={inp} value={tenantPhone} maxLength="10" placeholder="10-digit mobile number"
+                    onChange={(e) => setTenantPhone(e.target.value.replace(/\D/g, ''))} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Original / Permanent Address</label>
+                  <input style={inp} value={tenantOriginalAddress} onChange={(e) => setTenantOriginalAddress(e.target.value)} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Current Ward Location</label>
+                  <select style={inp} value={tenantWard} onChange={(e) => setTenantWard(e.target.value)} required>
+                    <option value="Ward 1 - Gandhi Nagar">Ward 1 - Gandhi Nagar</option>
+                    <option value="Ward 2 - Shanti Nagar">Ward 2 - Shanti Nagar</option>
+                    <option value="Ward 3 - Lake View">Ward 3 - Lake View</option>
+                    <option value="Ward 4 - Green Park">Ward 4 - Green Park</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={label}>Rental Agreement / Registration Copy (Max 2 MB)</label>
+                  <input type="file" accept="image/*" onChange={handleRentalCopyChange} style={{ marginTop: 5 }} required />
+                  {tenantRentalCopy && (
+                    <img src={tenantRentalCopy} alt="Rental Agreement Copy Preview" style={{ maxWidth: '100%', maxHeight: 120, borderRadius: 8, marginTop: 8, border: '1px solid #ccd8cd' }} />
+                  )}
+                </div>
+              </>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={label}>Email address</label>
@@ -180,12 +286,32 @@ export const AuthPage = () => {
 
           <p style={{ marginTop: 20, textAlign: 'center', fontSize: 14, color: '#556b56' }}>
             {mode === 'register' ? 'Already registered?' : mode === 'forgot' ? 'Remembered password?' : 'New resident?'}&nbsp;
-            <button onClick={() => { setMode(mode === 'register' ? 'login' : mode === 'forgot' ? 'login' : 'register'); setMessage(''); setResident(null); }}
+            <button onClick={() => { 
+              setMode(mode === 'register' ? 'login' : mode === 'forgot' ? 'login' : 'register'); 
+              setMessage(''); 
+              setResident(null); 
+              setIsTenant(false);
+              setTenantName('');
+              setTenantAadhaar('');
+              setTenantPhone('');
+              setTenantOriginalAddress('');
+              setTenantRentalCopy('');
+            }}
               style={{ background: 'none', border: 'none', color: '#2d6a4f', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: 14 }}>
               {mode === 'register' || mode === 'forgot' ? 'Sign In' : 'Register'}
             </button>
             {mode === 'login' && <>&nbsp;·&nbsp;
-              <button onClick={() => { setMode('forgot'); setMessage(''); setResident(null); }}
+              <button onClick={() => { 
+                setMode('forgot'); 
+                setMessage(''); 
+                setResident(null); 
+                setIsTenant(false);
+                setTenantName('');
+                setTenantAadhaar('');
+                setTenantPhone('');
+                setTenantOriginalAddress('');
+                setTenantRentalCopy('');
+              }}
                 style={{ background: 'none', border: 'none', color: '#2d6a4f', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', fontSize: 14 }}>
                 Forgot Password?
               </button>
