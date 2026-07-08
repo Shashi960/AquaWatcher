@@ -179,7 +179,7 @@ export const AuthPage = () => {
             </p>
           </div>
 
-          <form onSubmit={submit} style={{ display: 'grid', gap: 14 }}>
+          <form onSubmit={submit} autoComplete="off" style={{ display: 'grid', gap: 14 }}>
             {mode === 'register' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0' }}>
                 <input 
@@ -202,7 +202,7 @@ export const AuthPage = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={label}>Aadhaar-linked mobile number</label>
                 <input style={inp} value={phone} maxLength="10" placeholder="10-digit mobile number"
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} required />
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} autoComplete="new-phone-forgot" required />
               </div>
             )}
 
@@ -211,7 +211,7 @@ export const AuthPage = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={label}>Aadhaar-linked mobile number</label>
                   <input style={inp} value={phone} maxLength="10" placeholder="10-digit mobile number"
-                    onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} required />
+                    onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); setResident(null); }} autoComplete="new-phone-reg" required />
                 </div>
                 <button type="button" onClick={verify} disabled={busy || phone.length !== 10}
                   className="hover-button"
@@ -232,21 +232,21 @@ export const AuthPage = () => {
               <>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={label}>Full Name</label>
-                  <input style={inp} value={tenantName} onChange={(e) => setTenantName(e.target.value)} required />
+                  <input style={inp} value={tenantName} onChange={(e) => setTenantName(e.target.value)} autoComplete="new-tenant-name" required />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={label}>Aadhaar Number (12 digits)</label>
                   <input style={inp} value={tenantAadhaar} maxLength="12" placeholder="12-digit Aadhaar number"
-                    onChange={(e) => setTenantAadhaar(e.target.value.replace(/\D/g, ''))} required />
+                    onChange={(e) => setTenantAadhaar(e.target.value.replace(/\D/g, ''))} autoComplete="new-tenant-aadhaar" required />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={label}>Mobile Number</label>
                   <input style={inp} value={tenantPhone} maxLength="10" placeholder="10-digit mobile number"
-                    onChange={(e) => setTenantPhone(e.target.value.replace(/\D/g, ''))} required />
+                    onChange={(e) => setTenantPhone(e.target.value.replace(/\D/g, ''))} autoComplete="new-tenant-phone" required />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={label}>Original / Permanent Address</label>
-                  <input style={inp} value={tenantOriginalAddress} onChange={(e) => setTenantOriginalAddress(e.target.value)} required />
+                  <input style={inp} value={tenantOriginalAddress} onChange={(e) => setTenantOriginalAddress(e.target.value)} autoComplete="new-tenant-address" required />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={label}>Current Ward Location</label>
@@ -269,12 +269,26 @@ export const AuthPage = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={label}>Email address</label>
-              <input style={inp} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input 
+                style={inp} 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                autoComplete="new-email" 
+                required 
+              />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={label}>{mode === 'forgot' ? 'New password' : 'Password'}</label>
-              <input style={inp} type="password" value={password} minLength="6"
-                onChange={(e) => setPassword(e.target.value)} required />
+              <input 
+                style={inp} 
+                type="password" 
+                value={password} 
+                minLength="6"
+                onChange={(e) => setPassword(e.target.value)} 
+                autoComplete="new-password" 
+                required 
+              />
             </div>
 
             {message && <div style={{ background: '#fee2e2', color: '#991b1b', padding: '10px 14px', borderRadius: 8, fontSize: 14 }}>{message}</div>}
